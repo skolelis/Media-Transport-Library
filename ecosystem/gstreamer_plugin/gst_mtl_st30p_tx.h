@@ -44,72 +44,37 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef __GST_MTL_TX_SINK_H__
-#define __GST_MTL_TX_SINK_H__
+#ifndef __GST_MTL_ST30P_TX_H__
+#define __GST_MTL_ST30P_TX_H__
 
-#include <arpa/inet.h>
-#include <gst/gst.h>
-#include <gst/video/video.h>
-#include <mtl/mtl_api.h>
-#include <mtl/st_pipeline_api.h>
+#include "gst_mtl_common.h"
 
 G_BEGIN_DECLS
 
-#ifndef NS_PER_MS
-#define NS_PER_MS (1000 * 1000)
-#endif
+#define GST_TYPE_MTL_ST30P_TX (gst_mtl_st30p_tx_get_type())
+G_DECLARE_FINAL_TYPE(Gst_Mtl_St30p_Tx, gst_mtl_st30p_tx, GST, MTL_ST30P_TX, GstAudioSink)
 
-#ifndef NS_PER_S
-#define NS_PER_S (1000 * NS_PER_MS)
-#endif
-
-#define GST_TYPE_MTL_TX_SINK (gst_mtltxsink_get_type())
-G_DECLARE_FINAL_TYPE(GstMtlTxSink, gst_mtltxsink, GST, MTL_TX_SINK, GstVideoSink)
-
-typedef struct StDevArgs {
-  gchar port[MTL_PORT_MAX_LEN];
-  gchar local_ip_string[MTL_PORT_MAX_LEN];
-  gint tx_queues_cnt[MTL_PORT_MAX];
-  gint rx_queues_cnt[MTL_PORT_MAX];
-  gchar dma_dev[MTL_PORT_MAX_LEN];
-} StDevArgs;
-
-typedef struct StTxSessionPortArgs {
-  gchar tx_ip_string[MTL_PORT_MAX_LEN];
-  gchar port[MTL_PORT_MAX_LEN];
-  gint udp_port;
-  gint payload_type;
-} StTxSessionPortArgs;
-
-struct _GstMtlTxSink {
-  GstVideoSink element;
-  GstElement* child;
-  gboolean silent;
+struct _Gst_Mtl_St30p_Tx {
+  GstAudioSink element;
   mtl_handle mtl_lib_handle;
-  st20p_tx_handle tx_handle;
-
-  /* arguments for incomplete frame buffers */
-  guint retry_frame;
+  st30p_tx_handle tx_handle;
   guint frame_size;
 
-  /* arguments for imtl initialization device */
-  StDevArgs devArgs;
-  /* arguments for imtl tx session */
-  StTxSessionPortArgs portArgs;
+  /*
+   * Handles incomplete frame buffers when their size does not match the expected size.
+   */
+  struct st30_frame* cur_frame;
+  guint cur_frame_available_size;
 
-  /* arguments for session */
+  /* arguments */
+  guint retry_frame;
+  guint log_level;
+  StDevArgs devArgs;        /* imtl initialization device */
+  SessionPortArgs portArgs; /* imtl tx session */
   guint framebuffer_num;
   guint framerate;
-
-  /* TODO add support for gpu direct */
-#ifdef MTL_GPU_DIRECT_ENABLED
-  gboolean gpu_direct_enabled;
-  gint gpu_driver_index;
-  gint gpu_device_index;
-  gboolean* gpu_context;
-#endif /* MTL_GPU_DIRECT_ENABLED */
 };
 
 G_END_DECLS
 
-#endif /* __GST_MTL_TX_SINK_H__ */
+#endif /* __GST_MTL_ST30P_TX_H__ */
